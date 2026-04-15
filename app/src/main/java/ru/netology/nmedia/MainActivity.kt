@@ -26,7 +26,7 @@ class MainActivity : AppCompatActivity() {
             author = "Нетология. Университет интернет-профессий будущего",
             content = "Привет, это новая Нетология! Когда-то Нетология начиналась с интенсивов по онлайн-маркетингу. Затем появились курсы по дизайну, разработке, аналитике и управлению. Мы растём сами и помогаем расти студентам: от новичков до уверенных профессионалов. Но самое важное остаётся с нами: мы верим, что в каждом уже есть сила, которая заставляет хотеть больше, целиться выше, бежать быстрее. Наша миссия — помочь встать на путь роста и начать цепочку перемен → http://netolo.gy/fyb",
             published = "21 мая в 18:36",
-            likes = 10,
+            likes = 9999,
             isLiked = false,
             shares = 5,
             views = 100
@@ -39,8 +39,9 @@ class MainActivity : AppCompatActivity() {
             if (post.isLiked) {
                 like?.setImageResource(R.drawable.ic_liked_24)
             }
-            likeCount?.text = post.likes.toString()
-            shareCount?.text = post.shares.toString()
+            likeCount?.text = formatShortNumber(post.likes)
+            shareCount?.text = formatShortNumber(post.shares)
+            viewCount?.text = formatShortNumber(post.views)
 
             root.setOnClickListener {
                 Log.d("stuff", "stuff")
@@ -70,21 +71,25 @@ class MainActivity : AppCompatActivity() {
 
     fun formatShortNumber(number: Int): String {
         return when {
+            number < 1000 -> number.toString()
             number < 10_000 -> {
                 val thousands = number / 1000.0
-                // Округляем до десятых (1 знак после запятой)
-                String.format("%.1fK", thousands).replace(".0K", "K")
+                // Округляем до 1 знака после запятой (десятки тысяч)
+                val rounded = (thousands * 10).toInt() / 10.0
+                "${rounded}K".replace(".0K", "K")
             }
-
             number < 1_000_000 -> {
                 val thousands = number / 1000
                 "${thousands}K"
             }
-
-            else -> {
+            number < 10_000_000 -> {
                 val millions = number / 1_000_000.0
-                // Для миллионов округляем до десятых
-                String.format("%.1fM", millions).replace(".0M", "M")
+                val rounded = (millions * 10).toInt() / 10.0
+                "${rounded}M".replace(".0M", "M")
+            }
+            else -> {
+                val millions = number / 1_000_000
+                "${millions}M"
             }
         }
     }
