@@ -4,4 +4,7 @@
     <string name="nmedia">НМедиа!</string>
     <string name="description_post_author_avatar">Аватар автора поста</string>
     <string name="description_post_menu">Меню поста</string>
+    <string name="description_post_like">Лайки</string>
+    <string name="description_post_share">Репосты</string>
+    <string name="description_post_views">Просмотры</string>
 </resources>

@@ -3,4 +3,7 @@
     <string name="nmedia">NMedia</string>
     <string name="description_post_author_avatar">Post author avatar</string>
     <string name="description_post_menu">Post menu</string>
+    <string name="description_post_like">Post like</string>
+    <string name="description_post_share">Post share</string>
+    <string name="description_post_views">Post view</string>
 </resources>
