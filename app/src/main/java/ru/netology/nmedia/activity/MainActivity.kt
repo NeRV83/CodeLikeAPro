@@ -1,6 +1,8 @@
 package ru.netology.nmedia.activity
 
 import android.os.Bundle
+import android.view.View
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -8,8 +10,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
+import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.databinding.ActivityMainBinding
-import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -25,11 +29,65 @@ class MainActivity : AppCompatActivity() {
         }
 
         val viewModel: PostViewModel by viewModels()
-        val adapter = PostAdapter({ viewModel.likeById(it.id) }, { viewModel.shareById(it.id) })
+        val adapter = PostAdapter(object : OnInteractionListener {
+            override fun onEdit(post: Post) {
+                viewModel.editContent(post)
+            }
+
+            override fun onLike(post: Post) {
+                viewModel.likeById(post.id)
+            }
+
+            override fun onRemove(post: Post) {
+                viewModel.removeById(post.id)
+            }
+        }
+        )
         binding.list.adapter = adapter
         viewModel.data.observe(this) { posts ->
             adapter.submitList(posts)
         }
+
+        viewModel.editedNow.observe(this) { post ->
+            if (post.id != 0L) {
+                binding.editedContent.setText((post.content))
+                with(binding.content) {
+                    setText(post.content)
+                    AndroidUtils.showKeyboard(this)
+                }
+                binding.editGroup.visibility = View.VISIBLE
+            }
+        }
+
+        binding.save.setOnClickListener {
+            with(binding.content) {
+                if (text.isNullOrBlank()) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        context.getString(R.string.error_empty_content),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+
+                viewModel.saveContent(text.toString())
+
+                setText("")
+                clearFocus()
+                binding.editGroup.visibility = View.GONE
+                AndroidUtils.hideKeyboard(this)
+            }
+        }
+
+        binding.cancelButton.setOnClickListener{
+            binding.editGroup.visibility = View.GONE
+            with(binding.content) {
+                clearFocus()
+                setText("")
+                AndroidUtils.hideKeyboard(this)
+            }
+        }
     }
+
 
 }
