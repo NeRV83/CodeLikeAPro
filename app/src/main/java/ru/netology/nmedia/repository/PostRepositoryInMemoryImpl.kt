@@ -107,7 +107,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
         data.value = posts
     }
 
-    override fun save(post: Post) {
+    override fun savePost(post: Post) {
         if (post.id == 0L) {
             // TODO: remove hardcoded author & published
             posts = listOf(

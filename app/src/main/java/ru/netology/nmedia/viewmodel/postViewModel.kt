@@ -22,7 +22,7 @@ class PostViewModel : ViewModel() {
         editedNow.value?.let {
             val trimmedContent = content.trim()
             if (it.content != trimmedContent) {
-                repository.save(
+                repository.savePost(
                     it.copy(content = trimmedContent)
                 )
             }
@@ -32,6 +32,10 @@ class PostViewModel : ViewModel() {
 
     fun editContent(post: Post) {
         editedNow.value = post
+    }
+
+    fun cancelEdit() {
+        editedNow.value = empty
     }
 
 }

@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.save.setOnClickListener {
+        binding.saveButton.setOnClickListener {
             with(binding.content) {
                 if (text.isNullOrBlank()) {
                     Toast.makeText(
@@ -86,6 +86,7 @@ class MainActivity : AppCompatActivity() {
                 setText("")
                 AndroidUtils.hideKeyboard(this)
             }
+            viewModel.cancelEdit()
         }
     }
 
