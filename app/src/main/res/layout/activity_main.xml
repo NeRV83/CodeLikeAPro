@@ -94,6 +94,7 @@
         android:layout_marginTop="@dimen/common_spacing"
         android:background="@android:color/transparent"
         android:contentDescription="@string/description_post_like"
+        app:layout_constraintTop_toBottomOf="@id/editTop"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/content"

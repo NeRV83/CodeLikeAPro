@@ -44,12 +44,13 @@ class PostViewHolder(
             author.text = post.author
             published.text = post.published
             content.text = post.content
-            likeCount.text = formatShortNumber(post.likes)
-            shareCount.text = formatShortNumber(post.shares)
-            viewCount.text = formatShortNumber(post.views)
-            like.setImageResource(
-                if (post.isLiked) ru.netology.nmedia.R.drawable.ic_liked_24 else ru.netology.nmedia.R.drawable.ic_likes_24
-            )
+
+            share.text = formatShortNumber(post.shares)
+            view.text = formatShortNumber(post.views)
+
+            like.isChecked = post.isLiked
+            like.text = formatShortNumber(post.likes)
+
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
             }
