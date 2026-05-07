@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="editedContent,cancel_button" />
+        app:constraint_referenced_ids="editedContent,cancelButton" />
 
     <TextView
         android:id="@+id/editTitle"
@@ -34,7 +34,7 @@
         android:singleLine="true"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/editedContent"
-        app:layout_constraintEnd_toStartOf="@id/cancel_button"
+        app:layout_constraintEnd_toStartOf="@id/cancelButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/editCancelTop"
         app:layout_constraintVertical_chainStyle="packed" />
@@ -49,13 +49,13 @@
         android:hint="@string/post_text"
         android:singleLine="true"
         app:layout_constraintBottom_toTopOf="@id/editTop"
-        app:layout_constraintEnd_toStartOf="@id/cancel_button"
+        app:layout_constraintEnd_toStartOf="@id/cancelButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTitle"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <ImageButton
-        android:id="@+id/cancel_button"
+        android:id="@+id/cancelButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/common_spacing"
@@ -71,7 +71,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
-        app:constraint_referenced_ids="content,save" />
+        app:constraint_referenced_ids="content,saveButton" />
 
     <EditText
         android:id="@+id/content"
@@ -83,12 +83,12 @@
         android:inputType="textMultiLine"
         android:padding="@dimen/common_spacing"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/save"
+        app:layout_constraintEnd_toStartOf="@id/saveButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/editTop" />
 
     <ImageButton
-        android:id="@+id/save"
+        android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/common_spacing"
@@ -104,6 +104,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="editCancelTop,editTitle,editedContent,cancel_button, editTop,content,save" />
+        app:constraint_referenced_ids="editCancelTop,editTitle,editedContent,cancelButton, editTop,content,saveButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
