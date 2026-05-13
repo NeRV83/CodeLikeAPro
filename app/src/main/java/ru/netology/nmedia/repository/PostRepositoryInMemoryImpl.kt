@@ -3,6 +3,9 @@ package ru.netology.nmedia.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class PostRepositoryInMemoryImpl : PostRepository {
     private var posts = listOf(
@@ -12,7 +15,8 @@ class PostRepositoryInMemoryImpl : PostRepository {
             content = "Освоение новой профессии — это не только открывающиеся возможности и перспективы, но и настоящий вызов самому себе. Приходится выходить из зоны комфорта и перестраивать привычный образ жизни: менять распорядок дня, искать время для занятий, быть готовым к возможным неудачам в начале пути. В блоге рассказали, как избежать стресса на курсах профпереподготовки → http://netolo.gy/fPD",
             published = "23 сентября в 10:12",
             likes = 90,
-            isLiked = false
+            isLiked = false,
+            video = "https://rutube.ru/video/8492eb831b141679263eadcec62938c3/"
         ),
         Post(
             id = 8,
@@ -109,26 +113,29 @@ class PostRepositoryInMemoryImpl : PostRepository {
 
     override fun savePost(post: Post) {
         if (post.id == 0L) {
-            // TODO: remove hardcoded author & published
+            // TODO: remove hardcoded author
             posts = listOf(
                 post.copy(
                     id = nextId++,
                     author = "Me",
-                    published = "now"
+                    published = getCurrentDate()
                 )
             ) + posts
-            data.value = posts
-            return
+
         } else {
-            // TODO edit
+            posts = posts.map {
+                if (it.id != post.id) it else it.copy(content = post.content, video = post.video)
+            }
         }
 
-        posts = posts.map {
-            if (it.id != post.id) it else it.copy(content = post.content)
-        }
         data.value = posts
+        return
     }
 
-
+    fun getCurrentDate(): String {
+        val currentDate = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'г.'", Locale("ru"))
+        return currentDate.format(formatter).toString()
+    }
 
 }

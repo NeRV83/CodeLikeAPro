@@ -1,19 +1,18 @@
 package ru.netology.nmedia.activity
 
+import android.content.Intent
 import android.os.Bundle
-import android.view.View
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import ru.netology.nmedia.R
-import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.databinding.ActivityMainBinding
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class MainActivity : AppCompatActivity() {
@@ -39,58 +38,41 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onShare(post: Post) {
-                viewModel.shareById(post.id)
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, post.content)
+                }
+
+                val shareIntent =
+                    Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                startActivity(shareIntent)
             }
 
             override fun onRemove(post: Post) {
                 viewModel.removeById(post.id)
             }
-        }
-        )
+        })
+
         binding.list.adapter = adapter
         viewModel.data.observe(this) { posts ->
             adapter.submitList(posts)
         }
 
+        val newPostLauncher = registerForActivityResult(NewPostResultContract) { result ->
+            result?.let {
+                viewModel.saveContent(it.content, it.video)
+            }
+        }
+
+        binding.add.setOnClickListener {
+            newPostLauncher.launch(Pair(null, null))
+        }
+
         viewModel.editedNow.observe(this) { post ->
             if (post.id != 0L) {
-                binding.editedContent.setText((post.content))
-                with(binding.content) {
-                    setText(post.content)
-                    AndroidUtils.showKeyboard(this)
-                }
-                binding.editGroup.visibility = View.VISIBLE
+                newPostLauncher.launch(Pair(post.content, post.video ?: ""))
             }
-        }
-
-        binding.saveButton.setOnClickListener {
-            with(binding.content) {
-                if (text.isNullOrBlank()) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        context.getString(R.string.error_empty_content),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@setOnClickListener
-                }
-
-                viewModel.saveContent(text.toString())
-
-                setText("")
-                clearFocus()
-                binding.editGroup.visibility = View.GONE
-                AndroidUtils.hideKeyboard(this)
-            }
-        }
-
-        binding.cancelButton.setOnClickListener{
-            binding.editGroup.visibility = View.GONE
-            with(binding.content) {
-                clearFocus()
-                setText("")
-                AndroidUtils.hideKeyboard(this)
-            }
-            viewModel.cancelEdit()
         }
     }
 
