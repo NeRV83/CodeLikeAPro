@@ -44,10 +44,10 @@ class NewPostActivity : AppCompatActivity() {
 
             val videoUrl = binding.videoInput.text.toString().trim()
 
-            if (videoUrl.isBlank()) {
-                binding.videoInput.error = getString(R.string.error_invalid_video_url)
-                return@setOnClickListener
-            }
+//            if (videoUrl.isBlank()) {
+//                binding.videoInput.error = getString(R.string.error_invalid_video_url)
+//                return@setOnClickListener
+//            }
 
             val intent = Intent().apply {
                 putExtra(Intent.EXTRA_TEXT, content)
