@@ -1,5 +1,7 @@
 package ru.netology.nmedia.adapter
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
@@ -9,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.R
+import androidx.core.net.toUri
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -19,10 +22,9 @@ interface OnInteractionListener {
 
 class PostAdapter(
     private val onInteractionListener: OnInteractionListener
-) :
-    ListAdapter<Post, PostViewHolder>(
-        PostDiffCallBack
-    ) {
+) : ListAdapter<Post, PostViewHolder>(
+    PostDiffCallBack
+) {
 
     override fun onBindViewHolder(viewHolder: PostViewHolder, position: Int) {
         val post = getItem(position)
@@ -31,13 +33,12 @@ class PostAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding,onInteractionListener)
+        return PostViewHolder(binding, onInteractionListener)
     }
 }
 
 class PostViewHolder(
-    private val binding: CardPostBinding,
-    private val onInteractionListener: OnInteractionListener
+    private val binding: CardPostBinding, private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {
@@ -50,6 +51,17 @@ class PostViewHolder(
 
             like.isChecked = post.isLiked
             like.text = formatShortNumber(post.likes)
+
+            if (post.video.isNullOrBlank()) {
+                videoContainer.visibility = android.view.View.GONE
+            } else {
+                videoContainer.visibility = android.view.View.VISIBLE
+
+                playButton.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_VIEW, post.video.toUri())
+                    root.context.startActivity(intent)
+                }
+            }
 
             like.setOnClickListener {
                 onInteractionListener.onLike(post)
@@ -66,10 +78,12 @@ class PostViewHolder(
                                 onInteractionListener.onRemove(post)
                                 true
                             }
+
                             R.id.edit -> {
                                 onInteractionListener.onEdit(post)
                                 true
                             }
+
                             else -> false
                         }
                     }
@@ -83,7 +97,6 @@ class PostViewHolder(
             number < 1000 -> number.toString()
             number < 10_000 -> {
                 val thousands = number / 1000.0
-                // Округляем до 1 знака после запятой (десятки тысяч)
                 val rounded = (thousands * 10).toInt() / 10.0
                 "${rounded}K".replace(".0K", "K")
             }

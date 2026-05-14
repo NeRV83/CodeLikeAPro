@@ -18,12 +18,14 @@ class PostViewModel : ViewModel() {
     fun shareById(id: Long) = repository.shareById(id)
     fun removeById(id: Long) = repository.removeById(id)
 
-    fun saveContent(content: String) {
+    fun saveContent(content: String, videoUrl: String) {
         editedNow.value?.let {
             val trimmedContent = content.trim()
+            val video = videoUrl.ifBlank { null }
+
             if (it.content != trimmedContent) {
                 repository.savePost(
-                    it.copy(content = trimmedContent)
+                    it.copy(content = trimmedContent, video = video)
                 )
             }
             editedNow.value = empty
@@ -33,9 +35,4 @@ class PostViewModel : ViewModel() {
     fun editContent(post: Post) {
         editedNow.value = post
     }
-
-    fun cancelEdit() {
-        editedNow.value = empty
-    }
-
 }
