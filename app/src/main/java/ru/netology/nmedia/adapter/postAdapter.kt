@@ -1,23 +1,23 @@
 package ru.netology.nmedia.adapter
 
 import android.content.Intent
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.R
-import androidx.core.net.toUri
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
+    fun onPostClick(post: Post) {}
 }
 
 class PostAdapter(
@@ -88,6 +88,9 @@ class PostViewHolder(
                         }
                     }
                 }.show()
+            }
+            root.setOnClickListener {
+                onInteractionListener.onPostClick(post)
             }
         }
     }

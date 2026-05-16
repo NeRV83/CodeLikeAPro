@@ -20,6 +20,6 @@
     <string name="description_play_video">Воспроизвести видео</string>
     <string name="post_content_hint">Введите текст поста</string>
     <string name="video_url_hint">Введите ссылку на видео</string>
-    <string name="error_invalid_video_url">Incorrect video URL</string>
-    <string name="video_placeholder">Video_placeholder</string>
+    <string name="error_invalid_video_url">Некорректная ссылка</string>
+    <string name="video_placeholder">Место для видео</string>
 </resources>
