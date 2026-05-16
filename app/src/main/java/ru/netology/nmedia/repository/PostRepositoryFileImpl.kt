@@ -6,9 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import ru.netology.nmedia.dto.Post
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import ru.netology.nmedia.util.Utility.getCurrentDate
 
 class PostRepositoryFileImpl(private val context: Context) : PostRepository {
 
@@ -31,7 +29,7 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
         }
     }
 
-    override fun get(): LiveData<List<Post>> = data
+    override fun getData(): LiveData<List<Post>> = data
 
     override fun shareById(id: Long) {
         posts = posts.map {
@@ -68,18 +66,12 @@ class PostRepositoryFileImpl(private val context: Context) : PostRepository {
 
         } else {
             posts = posts.map {
-                if (it.id != post.id) it else it.copy(content = post.content, video = post.video)
+                if (it.id != post.id) it else it.copy(content = post.content, videoUrl = post.videoUrl)
             }
         }
 
         data.value = posts
         return
-    }
-
-    fun getCurrentDate(): String {
-        val currentDate = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'г.'", Locale("ru"))
-        return currentDate.format(formatter).toString()
     }
 
     private fun sync() {

@@ -10,6 +10,8 @@ import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
+import androidx.core.net.toUri
+import ru.netology.nmedia.util.Utility.formatShortNumber
 
 class PostFragment : Fragment() {
 
@@ -54,14 +56,14 @@ class PostFragment : Fragment() {
             like.isChecked = post.isLiked
             like.text = formatShortNumber(post.likes)
 
-            if (post.video.isNullOrBlank()) {
+            if (post.videoUrl.isNullOrBlank()) {
                 videoContainer.visibility = View.GONE
             } else {
                 videoContainer.visibility = View.VISIBLE
                 playButton.setOnClickListener {
                     val intent = android.content.Intent(
                         android.content.Intent.ACTION_VIEW,
-                        android.net.Uri.parse(post.video)
+                        post.videoUrl.toUri()
                     )
                     startActivity(intent)
                 }
@@ -116,33 +118,6 @@ class PostFragment : Fragment() {
                         }
                     }
                 }.show()
-            }
-        }
-    }
-
-    private fun formatShortNumber(number: Int): String {
-        return when {
-            number < 1000 -> number.toString()
-            number < 10_000 -> {
-                val thousands = number / 1000.0
-                val rounded = (thousands * 10).toInt() / 10.0
-                "${rounded}K".replace(".0K", "K")
-            }
-
-            number < 1_000_000 -> {
-                val thousands = number / 1000
-                "${thousands}K"
-            }
-
-            number < 10_000_000 -> {
-                val millions = number / 1_000_000.0
-                val rounded = (millions * 10).toInt() / 10.0
-                "${rounded}M".replace(".0M", "M")
-            }
-
-            else -> {
-                val millions = number / 1_000_000
-                "${millions}M"
             }
         }
     }
