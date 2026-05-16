@@ -89,18 +89,8 @@ class PostViewHolder(
                     }
                 }.show()
             }
-            root.setOnClickListener { view ->
-                // Проверяем, не был ли клик на кнопках
-                val isButtonClick = view is android.widget.Button ||
-                        view is com.google.android.material.button.MaterialButton ||
-                        view == like ||
-                        view == share ||
-                        view == menu ||
-                        view == playButton
-
-                if (!isButtonClick) {
-                    onInteractionListener.onPostClick(post)
-                }
+            root.setOnClickListener {
+                onInteractionListener.onPostClick(post)
             }
         }
     }
