@@ -3,9 +3,7 @@ package ru.netology.nmedia.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dto.Post
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import ru.netology.nmedia.util.Utility.getCurrentDate
 
 class PostRepositoryInMemoryImpl : PostRepository {
     private var posts = listOf(
@@ -16,7 +14,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
             published = "23 сентября в 10:12",
             likes = 90,
             isLiked = false,
-            video = "https://rutube.ru/video/8492eb831b141679263eadcec62938c3/"
+            videoUrl = "https://rutube.ru/video/8492eb831b141679263eadcec62938c3/"
         ),
         Post(
             id = 8,
@@ -87,7 +85,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
     private var nextId = posts.first().id + 1
     private val data = MutableLiveData(posts)
 
-    override fun get(): LiveData<List<Post>> = data
+    override fun getData(): LiveData<List<Post>> = data
 
     override fun shareById(id: Long) {
         posts = posts.map {
@@ -124,18 +122,11 @@ class PostRepositoryInMemoryImpl : PostRepository {
 
         } else {
             posts = posts.map {
-                if (it.id != post.id) it else it.copy(content = post.content, video = post.video)
+                if (it.id != post.id) it else it.copy(content = post.content, videoUrl = post.videoUrl)
             }
         }
 
         data.value = posts
         return
     }
-
-    fun getCurrentDate(): String {
-        val currentDate = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("d MMMM yyyy 'г.'", Locale("ru"))
-        return currentDate.format(formatter).toString()
-    }
-
 }

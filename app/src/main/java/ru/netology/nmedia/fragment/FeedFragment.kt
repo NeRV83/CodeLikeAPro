@@ -75,7 +75,7 @@ class FeedFragment : Fragment() {
                     published = "",
                     likes = 0,
                     isLiked = false,
-                    video = null,
+                    videoUrl = null,
                     shares = 0,
                     views = 0
                 )
