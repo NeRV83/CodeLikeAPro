@@ -2,7 +2,6 @@ reserve.md
 HELP.md
 .gradle
 build/
-google-services.json
 
 ### STS ###
 .apt_generated

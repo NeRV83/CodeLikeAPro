@@ -19,7 +19,12 @@ jobs:
         with:
           java-version: 17
 
-      - name: Build
+      - name: Decode google-services.json
+        env:
+          FIREBASE_SETTINGS: ${{ secrets.FIREBASE_SETTINGS }}
+        run: echo $FIREBASE_SETTINGS > ./app/google-services.json
+
+      - name: Build  
         run: |
           chmod +x ./gradlew
           ./gradlew build
