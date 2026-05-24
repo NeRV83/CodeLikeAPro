@@ -1,0 +1,104 @@
+package ru.netology.nmedia.adapter
+
+import android.content.Intent
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.net.toUri
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import ru.netology.nmedia.R
+import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.Utility.formatShortNumber
+
+interface OnInteractionListener {
+    fun onLike(post: Post) {}
+    fun onEdit(post: Post) {}
+    fun onRemove(post: Post) {}
+    fun onShare(post: Post) {}
+    fun onPostClick(post: Post) {}
+}
+
+class PostAdapter(
+    private val onInteractionListener: OnInteractionListener
+) : ListAdapter<Post, PostViewHolder>(
+    PostDiffCallBack
+) {
+
+    override fun onBindViewHolder(viewHolder: PostViewHolder, position: Int) {
+        val post = getItem(position)
+        viewHolder.bind(post)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
+        val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return PostViewHolder(binding, onInteractionListener)
+    }
+}
+
+class PostViewHolder(
+    private val binding: CardPostBinding, private val onInteractionListener: OnInteractionListener
+) : RecyclerView.ViewHolder(binding.root) {
+    fun bind(post: Post) {
+        binding.apply {
+            author.text = post.author
+            published.text = post.published
+            content.text = post.content
+
+            share.text = formatShortNumber(post.shares)
+            view.text = formatShortNumber(post.views)
+
+            like.isChecked = post.isLiked
+            like.text = formatShortNumber(post.likes)
+
+            if (post.videoUrl.isNullOrBlank()) {
+                videoContainer.visibility = android.view.View.GONE
+            } else {
+                videoContainer.visibility = android.view.View.VISIBLE
+
+                playButton.setOnClickListener {
+                    val intent = Intent(Intent.ACTION_VIEW, post.videoUrl.toUri())
+                    root.context.startActivity(intent)
+                }
+            }
+
+            like.setOnClickListener {
+                onInteractionListener.onLike(post)
+            }
+            share.setOnClickListener {
+                onInteractionListener.onShare(post)
+            }
+            menu.setOnClickListener {
+                PopupMenu(it.context, it).apply {
+                    inflate(R.menu.menu_post)
+                    setOnMenuItemClickListener { item ->
+                        when (item.itemId) {
+                            R.id.remove -> {
+                                onInteractionListener.onRemove(post)
+                                true
+                            }
+
+                            R.id.edit -> {
+                                onInteractionListener.onEdit(post)
+                                true
+                            }
+
+                            else -> false
+                        }
+                    }
+                }.show()
+            }
+            root.setOnClickListener {
+                onInteractionListener.onPostClick(post)
+            }
+        }
+    }
+}
+
+object PostDiffCallBack : DiffUtil.ItemCallback<Post>() {
+    override fun areContentsTheSame(p0: Post, p1: Post) = p0 == p1
+
+    override fun areItemsTheSame(oldItem: Post, newItem: Post) = oldItem.id == newItem.id
+}

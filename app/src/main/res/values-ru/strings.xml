@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">НМедиа</string>
+    <string name="nmedia">НМедиа!</string>
+    <string name="description_post_author_avatar">Аватар автора поста</string>
+    <string name="description_post_menu">Меню поста</string>
+    <string name="description_post_like">Лайки</string>
+    <string name="description_post_share">Репосты</string>
+    <string name="description_post_views">Просмотры</string>
+    <string name="description_post_save">Сохранение поста</string>
+    <string name="menu_remove">Удалить</string>
+    <string name="post_text">Текст поста</string>
+    <string name="menu_edit">Редактировать</string>
+    <string name="error_empty_content">Контент не может быть пустым</string>
+    <string name="description_postedit_cancel">Отмена редактирования</string>
+    <string name="editTitle">Редактирование</string>
+    <string name="chooser_share_post">Поделиться постом</string>
+    <string name="add_post">Добавить пост</string>
+    <string name="save">Сохранить</string>
+    <string name="description_play_video">Воспроизвести видео</string>
+    <string name="post_content_hint">Введите текст поста</string>
+    <string name="video_url_hint">Введите ссылку на видео</string>
+    <string name="error_invalid_video_url">Некорректная ссылка</string>
+    <string name="video_placeholder">Место для видео</string>
+    <string name="channel_remote_name">Уведомления с сервера</string>
+    <string name="channel_remote_description">Уведомления с удалённого сервера</string>
+    <string name="google_play_unavailable">Google API Недоступно</string>
+    <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
+    <string name="notification_new_post">Пользователь %1$s опубликовал новый пост:</string>
+    <string name="new_post_title">Новый пост</string>
+    <string name="warning">Внимание!</string>
+    <string name="unknown_action">Неизвестное действие: %1$s</string>
+</resources>
