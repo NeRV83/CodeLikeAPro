@@ -84,7 +84,11 @@ class NewPostFragment : Fragment() {
 
             viewModel.saveContent(content, videoUrl)
             draftManager.clearDraft()
+        }
+
+        viewModel.postCreated.observe(viewLifecycleOwner) {
             findNavController().navigateUp()
+            viewModel.loadPosts()
         }
 
         return binding.root

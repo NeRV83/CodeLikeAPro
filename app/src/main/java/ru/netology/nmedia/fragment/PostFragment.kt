@@ -12,6 +12,8 @@ import ru.netology.nmedia.databinding.FragmentPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 import androidx.core.net.toUri
 import ru.netology.nmedia.util.Utility.formatShortNumber
+import ru.netology.nmedia.util.Utility.formatTimestamp
+
 
 class PostFragment : Fragment() {
 
@@ -38,7 +40,8 @@ class PostFragment : Fragment() {
             return
         }
 
-        val post = viewModel.data.value?.find { it.id == postId }
+//        val post = viewModel.data.value?.find { it.id == postId }
+        val post = viewModel.data.value?.posts?.find { it.id == postId }
 
         if (post == null) {
             findNavController().navigateUp()
@@ -47,13 +50,13 @@ class PostFragment : Fragment() {
 
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = formatTimestamp(post.published)
             content.text = post.content
 
             share.text = formatShortNumber(post.shares)
             view1.text = formatShortNumber(post.views)
 
-            like.isChecked = post.isLiked
+            like.isChecked = post.likedByMe
             like.text = formatShortNumber(post.likes)
 
             if (post.videoUrl.isNullOrBlank()) {
@@ -71,10 +74,12 @@ class PostFragment : Fragment() {
 
             like.setOnClickListener {
                 viewModel.likeById(post.id)
-                viewModel.data.observe(viewLifecycleOwner) { posts ->
-                    val updatedPost = posts.find { it.id == post.id }
+//                viewModel.data.observe(viewLifecycleOwner) { posts ->
+                viewModel.data.observe(viewLifecycleOwner) { feedModel ->
+//                    val updatedPost = posts.find { it.id == post.id }
+                    val updatedPost = feedModel.posts.find { it.id == post.id }
                     updatedPost?.let {
-                        like.isChecked = it.isLiked
+                        like.isChecked = it.likedByMe
                         like.text = formatShortNumber(it.likes)
                         share.text = formatShortNumber(it.shares)
                     }

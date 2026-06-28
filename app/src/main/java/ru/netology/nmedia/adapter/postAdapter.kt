@@ -1,6 +1,7 @@
 package ru.netology.nmedia.adapter
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
@@ -12,6 +13,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.Utility.formatShortNumber
+import ru.netology.nmedia.util.Utility.formatTimestamp
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -43,14 +45,15 @@ class PostViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {
+
             author.text = post.author
-            published.text = post.published
+            published.text = formatTimestamp(post.published)
             content.text = post.content
 
             share.text = formatShortNumber(post.shares)
             view.text = formatShortNumber(post.views)
 
-            like.isChecked = post.isLiked
+            like.isChecked = post.likedByMe
             like.text = formatShortNumber(post.likes)
 
             if (post.videoUrl.isNullOrBlank()) {

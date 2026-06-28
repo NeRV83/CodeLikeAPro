@@ -4,9 +4,9 @@ data class Post(
     val id: Long = 0,
     val author: String = "",
     val content: String = "",
-    val published: String = "",
+    val published: Long,
     val likes: Int = 0,
-    val isLiked: Boolean = false,
+    val likedByMe: Boolean = false,
     val shares: Int = 0,
     val views: Int = 0,
     val videoUrl: String? = null

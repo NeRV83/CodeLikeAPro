@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -62,9 +63,29 @@ class FeedFragment : Fragment() {
         })
 
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            adapter.submitList(posts)
+
+        binding.swipeRefreshLayout.apply {
+            setOnRefreshListener {
+                viewModel.loadPosts()
+            }
         }
+
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
+            binding.errorGroup.isVisible = state.error
+            binding.empty.isVisible = state.empty
+            binding.loadingProgress.isVisible = state.loading
+
+            if ((!state.loading||state.error) && binding.swipeRefreshLayout.isRefreshing) {
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
+
+//            if (state.error && binding.swipeRefreshLayout.isRefreshing) {
+//                binding.swipeRefreshLayout.isRefreshing = false
+//            }
+        }
+
+        binding.retry.setOnClickListener { viewModel.loadPosts() }
 
         binding.add.setOnClickListener {
             viewModel.editContent(
@@ -72,9 +93,9 @@ class FeedFragment : Fragment() {
                     id = 0,
                     author = "",
                     content = "",
-                    published = "",
+                    published = 0,
                     likes = 0,
-                    isLiked = false,
+                    likedByMe = false,
                     videoUrl = null,
                     shares = 0,
                     views = 0
