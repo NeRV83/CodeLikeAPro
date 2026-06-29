@@ -22,8 +22,8 @@ interface PostDao {
 
     @Query("""
         UPDATE PostEntity SET
-        likes = likes + CASE WHEN isLiked THEN -1 ELSE 1 END,
-        isLiked = CASE WHEN isLiked THEN 0 ELSE 1 END
+        likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
+        likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
         WHERE id = :id
         """)
     fun likeById(id: Long)

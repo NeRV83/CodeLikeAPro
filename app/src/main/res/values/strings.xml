@@ -29,4 +29,7 @@
     <string name="new_post_title">New post</string>
     <string name="warning">Warning!</string>
     <string name="unknown_action">Unknown action: %1$s</string>
+    <string name="network_error">Network error</string>
+    <string name="retry">Retry</string>
+    <string name="no_posts">No posts</string>
 </resources>
