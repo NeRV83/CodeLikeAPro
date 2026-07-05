@@ -98,7 +98,9 @@ class FeedFragment : Fragment() {
                     likedByMe = false,
                     videoUrl = null,
                     shares = 0,
-                    views = 0
+                    views = 0,
+                    authorAvatar = null,
+                    attachment = null
                 )
             )
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)

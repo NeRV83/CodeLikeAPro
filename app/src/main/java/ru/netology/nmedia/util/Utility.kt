@@ -52,4 +52,14 @@ object Utility {
             }
         }
     }
+
+    fun extractVideoId(url: String): String? {
+        val pattern = "rutube\\.ru/video/([a-zA-Z0-9_\\-]+)".toRegex()
+        return pattern.find(url)?.groupValues?.get(1)
+    }
+
+    fun getThumbnailDirectUrl(url: String): String {
+        val videoId = extractVideoId(url)
+        return "https://rutube.ru/api/video/$videoId/thumbnail/?redirect=1"
+    }
 }

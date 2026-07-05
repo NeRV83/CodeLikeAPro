@@ -3,17 +3,20 @@ package ru.netology.nmedia.adapter
 import android.content.Intent
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.Utility.formatShortNumber
 import ru.netology.nmedia.util.Utility.formatTimestamp
+import ru.netology.nmedia.util.Utility.getThumbnailDirectUrl
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -61,11 +64,41 @@ class PostViewHolder(
             } else {
                 videoContainer.visibility = android.view.View.VISIBLE
 
+                val thumbnailDirectUrl = getThumbnailDirectUrl(post.videoUrl)
+                Glide.with(binding.videoThumbnail)
+                    .load(thumbnailDirectUrl)
+                    .placeholder(R.drawable.ic_loading_100dp)
+                    .error(R.drawable.ic_error_100dp)
+                    .timeout(10_000)
+                    .into(binding.videoThumbnail)
+
                 playButton.setOnClickListener {
                     val intent = Intent(Intent.ACTION_VIEW, post.videoUrl.toUri())
                     root.context.startActivity(intent)
                 }
             }
+
+            if (post.attachment?.url.isNullOrBlank()) {
+                imgContainer.visibility = View.GONE
+            } else {
+                imgContainer.visibility = View.VISIBLE
+                val url = "http://10.0.2.2:9999/images/${post.attachment?.url}"
+                Glide.with(binding.imgContainer)
+                    .load(url)
+                    .placeholder(R.drawable.ic_loading_100dp)
+                    .error(R.drawable.ic_error_100dp)
+                    .timeout(10_000)
+                    .into(binding.imgThumbnail)
+            }
+
+            val url = "http://10.0.2.2:9999/avatars/${post.authorAvatar}"
+            Glide.with(binding.avatar)
+                .load(url)
+                .placeholder(R.drawable.ic_loading_100dp)
+                .error(R.drawable.ic_error_100dp)
+                .timeout(10_000)
+                .circleCrop()
+                .into(binding.avatar)
 
             like.setOnClickListener {
                 onInteractionListener.onLike(post)

@@ -60,6 +60,7 @@ dependencies {
     // Source: https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation(libs.okhttp3.okhttp)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.glide)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -13,7 +13,7 @@ import ru.netology.nmedia.util.SingleLiveEvent
 import kotlin.concurrent.thread
 
 private val empty = Post(
-    id = 0, author = "", content = "", published = 0, likes = 0, likedByMe = false, videoUrl = null
+    id = 0, author = "", content = "", published = 0, likes = 0, likedByMe = false, videoUrl = null, authorAvatar = null, attachment = null
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
