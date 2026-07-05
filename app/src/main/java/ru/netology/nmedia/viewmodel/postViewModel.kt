@@ -4,13 +4,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryNetImpl
 import ru.netology.nmedia.util.SingleLiveEvent
-import kotlin.concurrent.thread
 
 private val empty = Post(
     id = 0, author = "", content = "", published = 0, likes = 0, likedByMe = false, videoUrl = null, authorAvatar = null, attachment = null
@@ -55,7 +53,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPostsAsync()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
@@ -78,7 +76,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPostsAsync()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
@@ -102,7 +100,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPostsAsync()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
@@ -145,7 +143,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val newPost = post.copy(
             author = "Me",
             content = trimmedContent,
-            videoUrl = video
+            videoUrl = video,
+            authorAvatar = "netology.jpg"
         )
 
         repository.savePostAsync(newPost, object : PostRepository.SaveCallback {
@@ -155,7 +154,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPostsAsync()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
@@ -187,7 +186,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 _data.postValue(FeedModel(error = true))
             }
         })
