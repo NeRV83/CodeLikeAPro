@@ -66,7 +66,7 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefreshLayout.apply {
             setOnRefreshListener {
-                viewModel.loadPosts()
+                viewModel.loadPostsAsync()
             }
         }
 
@@ -85,7 +85,7 @@ class FeedFragment : Fragment() {
 //            }
         }
 
-        binding.retry.setOnClickListener { viewModel.loadPosts() }
+        binding.retry.setOnClickListener { viewModel.loadPostsAsync() }
 
         binding.add.setOnClickListener {
             viewModel.editContent(
