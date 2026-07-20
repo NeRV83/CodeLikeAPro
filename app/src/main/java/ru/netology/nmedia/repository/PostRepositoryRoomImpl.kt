@@ -10,7 +10,7 @@ package ru.netology.nmedia.repository
 //    private val dao: PostDao,
 //) : PostRepository {
 //
-//    override fun getData() = dao.getData().map { list ->
+//    override fun getAll() = dao.getAll().map { list ->
 //        list.map {
 //            it.toDto()
 //        }

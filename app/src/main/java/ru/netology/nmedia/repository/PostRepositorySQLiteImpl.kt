@@ -12,11 +12,11 @@ package ru.netology.nmedia.repository
 //    private val data = MutableLiveData(posts)
 //
 //    init {
-//        posts = dao.getData()
+//        posts = dao.getAll()
 //        data.value = posts
 //    }
 //
-//    override fun getData(): LiveData<List<Post>> = data
+//    override fun getAll(): LiveData<List<Post>> = data
 //
 //    override fun shareById(id: Long) {
 //        dao.shareById(id)

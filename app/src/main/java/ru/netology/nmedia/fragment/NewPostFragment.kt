@@ -88,7 +88,7 @@ class NewPostFragment : Fragment() {
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
             findNavController().navigateUp()
-            viewModel.loadPostsAsync()
+            viewModel.loadPosts()
         }
 
         return binding.root

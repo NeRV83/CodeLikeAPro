@@ -66,44 +66,43 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefreshLayout.apply {
             setOnRefreshListener {
-                viewModel.loadPostsAsync()
+                viewModel.loadPosts()
             }
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+        viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.errorGroup.isVisible = state.error
-            binding.empty.isVisible = state.empty
             binding.loadingProgress.isVisible = state.loading
 
-            if ((!state.loading||state.error) && binding.swipeRefreshLayout.isRefreshing) {
+            if ((!state.loading || state.error) && binding.swipeRefreshLayout.isRefreshing) {
                 binding.swipeRefreshLayout.isRefreshing = false
             }
 
-//            if (state.error && binding.swipeRefreshLayout.isRefreshing) {
-//                binding.swipeRefreshLayout.isRefreshing = false
-//            }
-        }
+            viewModel.data.observe(viewLifecycleOwner) { feedmodel ->
+                adapter.submitList(feedmodel.posts)
+                binding.empty.isVisible = feedmodel.empty
+            }
 
-        binding.retry.setOnClickListener { viewModel.loadPostsAsync() }
+            binding.retry.setOnClickListener { viewModel.loadPosts() }
 
-        binding.add.setOnClickListener {
-            viewModel.editContent(
-                Post(
-                    id = 0,
-                    author = "",
-                    content = "",
-                    published = 0,
-                    likes = 0,
-                    likedByMe = false,
-                    videoUrl = null,
-                    shares = 0,
-                    views = 0,
-                    authorAvatar = null,
-                    attachment = null
+            binding.add.setOnClickListener {
+                viewModel.editContent(
+                    Post(
+                        id = 0,
+                        author = "",
+                        content = "",
+                        published = 0,
+                        likes = 0,
+                        likedByMe = false,
+                        videoUrl = null,
+                        shares = 0,
+                        views = 0,
+                        authorAvatar = null,
+                        attachment = null
+                    )
                 )
-            )
-            findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            }
         }
         return binding.root
     }
