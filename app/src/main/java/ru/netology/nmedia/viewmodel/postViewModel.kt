@@ -46,13 +46,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         .catch { it.printStackTrace() }
         .asLiveData(Dispatchers.Default)
 
-    val newerCount = data.switchMap {
-        repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
-            .catch { _state.postValue(FeedModelState(error = true)) }
-            .asLiveData(Dispatchers.Default)
-    }
+    val newCount = repository.newCount.asLiveData() 
 
     val editedNow = MutableLiveData(empty)
+
+    fun markNewAsRead() {
+        viewModelScope.launch {
+            repository.markNewAsRead()
+        }
+    }
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated

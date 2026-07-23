@@ -34,4 +34,5 @@
     <string name="retry">Retry</string>
     <string name="no_posts">No posts</string>
     <string name="img_placeholder">Image placeholder</string>
+    <string name="new_posts_banner">Свежие записи: %d</string>
 </resources>

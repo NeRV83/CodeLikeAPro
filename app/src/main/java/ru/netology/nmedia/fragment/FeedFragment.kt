@@ -83,9 +83,18 @@ class FeedFragment : Fragment() {
                 binding.empty.isVisible = feedmodel.empty
             }
 
-            viewModel.newerCount.observe(viewLifecycleOwner) {
-                println(it)
+            viewModel.newCount.observe(viewLifecycleOwner) { count ->
+                binding.newPostsBanner.visibility = if (count > 0) View.VISIBLE else View.GONE
+                binding.newPostsText.text = getString(R.string.new_posts_banner, count)
+                println(count)
             }
+
+            binding.newPostsBanner.setOnClickListener {
+                viewModel.markNewAsRead()
+                binding.list.postDelayed({
+                    binding.list.smoothScrollToPosition(0)
+                }, 200)
+            } 
 
             binding.retry.setOnClickListener { viewModel.loadPosts() }
 
