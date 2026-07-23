@@ -83,6 +83,10 @@ class FeedFragment : Fragment() {
                 binding.empty.isVisible = feedmodel.empty
             }
 
+            viewModel.newerCount.observe(viewLifecycleOwner) {
+                println(it)
+            }
+
             binding.retry.setOnClickListener { viewModel.loadPosts() }
 
             binding.add.setOnClickListener {
