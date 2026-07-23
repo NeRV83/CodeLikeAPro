@@ -30,7 +30,7 @@ package ru.netology.nmedia.repository
 //        }
 //    }
 //
-//    override fun getData(): LiveData<List<Post>> = data
+//    override fun getAll(): LiveData<List<Post>> = data
 //
 //    override fun shareById(id: Long) {
 //        posts = posts.map {
