@@ -21,12 +21,26 @@ data class PostEntity(
     val videoUrl: String? = null,
     val authorAvatar: String? = null,
     @Embedded
-    var attachment: AttachmentEmbeddable?
+    var attachment: AttachmentEmbeddable?,
+    val isNew: Boolean = false 
 ) {
-    fun toDto() = Post(id, author, content, published, likes, likedByMe, shares, views, videoUrl, authorAvatar, attachment?.toDto())
+    fun toDto() = Post(
+        id,
+        author,
+        content,
+        published,
+        likes,
+        likedByMe,
+        shares,
+        views,
+        videoUrl,
+        authorAvatar,
+        attachment?.toDto()
+    )
 
     companion object {
-        fun fromDto(dto: Post) = PostEntity(
+        //        fun fromDto(dto: Post) = PostEntity(
+        fun fromDto(dto: Post, isNew: Boolean = false) = PostEntity( 
             dto.id,
             dto.author,
             dto.content,
@@ -37,7 +51,8 @@ data class PostEntity(
             dto.views,
             dto.videoUrl,
             dto.authorAvatar,
-            AttachmentEmbeddable.fromDto(dto.attachment)
+            AttachmentEmbeddable.fromDto(dto.attachment),
+            isNew 
         )
     }
 }
@@ -56,3 +71,7 @@ data class AttachmentEmbeddable(
         }
     }
 }
+
+fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
+fun List<Post>.toEntity(isNew: Boolean = false): List<PostEntity> =
+    map { PostEntity.fromDto(it, isNew) } 
