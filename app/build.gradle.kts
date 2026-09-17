@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.dagger.hilt.android)
 }
 
 android {
@@ -72,6 +73,13 @@ dependencies {
     // Source: https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-android
     runtimeOnly(libs.kotlinx.coroutines.android)
     ksp(libs.androidx.room.compiler)
+    implementation(libs.imagepicker)
+    implementation(libs.ucrop)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.fragment)
+    coreLibraryDesugaring(libs.desugaring)
+    implementation(libs.play.services)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
