@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.fragment)
+    implementation(libs.androidx.paging.runtime.ktx)
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.play.services)
     testImplementation(libs.junit)

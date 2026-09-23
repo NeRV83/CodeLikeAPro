@@ -1,32 +1,45 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entity.toDto
+import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.error.ApiError
+import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import ru.netology.nmedia.api.PostApiService
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 class PostRepositoryNetImpl @Inject constructor(
     private val dao: PostDao,
-    private val apiService: PostApiService
+    private val apiService: ApiService
 ) : PostRepository {
 
-    override val data = dao.getAll().map { entities ->
-        entities.map(PostEntity::toDto)
-    }
+    override val data = Pager(
+        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        pagingSourceFactory = {
+            PostPagingSource(apiService)
+        }
+    ).flow
 
     private val _newCount = MutableStateFlow(0)
     override val newCount = _newCount.asStateFlow()
@@ -36,7 +49,7 @@ class PostRepositoryNetImpl @Inject constructor(
     init {
         scope.launch {
             while (true) {
-                delay(30_000.milliseconds) // каждые 30 секунд
+                delay(30_000.milliseconds)
                 try {
                     val maxId = dao.getMaxId() ?: 0L
                     val response = apiService.getNewer(maxId)
@@ -50,7 +63,6 @@ class PostRepositoryNetImpl @Inject constructor(
                 } catch (e: IOException) {
                     // сетевые ошибки игнорируем, чтобы не прерывать цикл
                 } catch (e: Exception) {
-                    // другие ошибки логируем
                     e.printStackTrace()
                 }
             }
@@ -63,7 +75,7 @@ class PostRepositoryNetImpl @Inject constructor(
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.map { PostEntity.fromDto(it, isNew = false) })
-            _newCount.value = dao.getNewCount() // обновляем счётчик после загрузки
+            _newCount.value = dao.getNewCount()
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -130,5 +142,41 @@ class PostRepositoryNetImpl @Inject constructor(
     override suspend fun markNewAsRead() {
         dao.markAllAsRead()
         _newCount.value = dao.getNewCount()
+    }
+
+    override fun getNewerCount(id: Long): Flow<Int> = flow {
+        var lastId = id
+        while (true) {
+            delay(120_000L)
+            val response = apiService.getNewer(lastId)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            if (body.isNotEmpty()) {
+                dao.insert(body.toEntity(isNew = true))
+                lastId = body.maxOf { it.id }
+            }
+            emit(body.size)
+        }
+    }
+        .catch { e -> throw AppError.from(e) }
+        .flowOn(Dispatchers.Default)
+
+    override fun getPostFlow(id: Long): Flow<Post?> =
+        dao.getByIdFlow(id).map { it?.toDto() }
+
+    override suspend fun fetchPost(id: Long) {
+        if (dao.getById(id) != null) return
+        try {
+            val response = apiService.getById(id)
+            if (!response.isSuccessful) throw ApiError(response.code(), response.message())
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            dao.insert(PostEntity.fromDto(body, isNew = false))
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 }
