@@ -11,16 +11,18 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 import androidx.core.net.toUri
+import androidx.fragment.app.activityViewModels
 import ru.netology.nmedia.util.Utility.formatShortNumber
 import ru.netology.nmedia.util.Utility.formatTimestamp
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.util.Utility.getThumbnailDirectUrl
 
-
+@AndroidEntryPoint
 class PostFragment : Fragment() {
 
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
+    private val viewModel: PostViewModel by activityViewModels()
     private var _binding: FragmentPostBinding? = null
     private val binding get() = _binding!!
 
