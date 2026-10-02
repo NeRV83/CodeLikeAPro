@@ -8,9 +8,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
@@ -46,7 +51,6 @@ class FeedFragment : Fragment() {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, post.content)
                 }
-
                 val shareIntent =
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
@@ -67,9 +71,41 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        binding.swipeRefreshLayout.apply {
-            setOnRefreshListener {
-                viewModel.loadPosts()
+        // PagingData -> submitData
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.data.collectLatest(adapter::submitData)
+            }
+        }
+
+        // Состояние пагинации
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                adapter.loadStateFlow.collectLatest { state ->
+                    binding.swipeRefreshLayout.isRefreshing =
+                        state.refresh is LoadState.Loading ||
+                                state.prepend is LoadState.Loading ||
+                                state.append is LoadState.Loading
+
+                    val isEmpty = state.refresh is LoadState.NotLoading &&
+                            adapter.itemCount == 0
+                    binding.empty.isVisible = isEmpty
+                }
+            }
+        }
+
+        // НОВОЕ: подписка на сигнал "ленте надо обновиться"
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.refreshTrigger.collect {
+                    adapter.refresh()
+                }
+            }
+        }
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                adapter.refresh()
             }
         }
 
@@ -80,46 +116,50 @@ class FeedFragment : Fragment() {
             if ((!state.loading || state.error) && binding.swipeRefreshLayout.isRefreshing) {
                 binding.swipeRefreshLayout.isRefreshing = false
             }
+        }
 
-            viewModel.data.observe(viewLifecycleOwner) { feedmodel ->
-                adapter.submitList(feedmodel.posts)
-                binding.empty.isVisible = feedmodel.empty
+        viewModel.newCount.observe(viewLifecycleOwner) { count ->
+            binding.newPostsBanner.visibility = if (count > 0) View.VISIBLE else View.GONE
+            binding.newPostsText.text = getString(R.string.new_posts_banner, count)
+        }
+
+        binding.newPostsBanner.setOnClickListener {
+            viewModel.markNewAsRead()
+            viewLifecycleOwner.lifecycleScope.launch {
+                adapter.refresh()
             }
+            binding.list.postDelayed({
+                binding.list.smoothScrollToPosition(0)
+            }, 200)
+        }
 
-            viewModel.newCount.observe(viewLifecycleOwner) { count ->
-                binding.newPostsBanner.visibility = if (count > 0) View.VISIBLE else View.GONE
-                binding.newPostsText.text = getString(R.string.new_posts_banner, count)
-                println(count)
-            }
-
-            binding.newPostsBanner.setOnClickListener {
-                viewModel.markNewAsRead()
-                binding.list.postDelayed({
-                    binding.list.smoothScrollToPosition(0)
-                }, 200)
-            } 
-
-            binding.retry.setOnClickListener { viewModel.loadPosts() }
-
-            binding.add.setOnClickListener {
-                viewModel.editContent(
-                    Post(
-                        id = 0,
-                        author = "",
-                        content = "",
-                        published = 0,
-                        likes = 0,
-                        likedByMe = false,
-                        videoUrl = null,
-                        shares = 0,
-                        views = 0,
-                        authorAvatar = null,
-                        attachment = null
-                    )
-                )
-                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        binding.retry.setOnClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                adapter.retry()
             }
         }
+
+        binding.add.setOnClickListener {
+            viewModel.editContent(
+                Post(
+                    id = 0,
+                    author = "",
+                    authorId = 0,
+                    content = "",
+                    published = 0,
+                    likes = 0,
+                    likedByMe = false,
+                    videoUrl = null,
+                    shares = 0,
+                    views = 0,
+                    authorAvatar = null,
+                    attachment = null,
+                    ownedByMe = false,
+                )
+            )
+            findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
         return binding.root
     }
 }

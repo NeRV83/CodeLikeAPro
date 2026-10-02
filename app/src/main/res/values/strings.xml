@@ -34,4 +34,7 @@
     <string name="no_posts">No posts</string>
     <string name="img_placeholder">Image placeholder</string>
     <string name="new_posts_banner">Свежие записи: %d</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sign_up">Sign up</string>
+    <string name="sign_out">Sign out</string>
 </resources>

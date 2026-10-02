@@ -6,68 +6,115 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import javax.inject.Inject
 
 private val empty = Post(
     id = 0,
     author = "",
+    authorId = 0,
     content = "",
     published = 0,
     likes = 0,
     likedByMe = false,
     videoUrl = null,
     authorAvatar = null,
-    attachment = null
+    attachment = null,
+    ownedByMe = false,
 )
 
 @HiltViewModel
-@ExperimentalCoroutinesApi
 class PostViewModel @Inject constructor(
-    private val repository: PostRepository
+    private val repository: PostRepository,
+    private val auth: AppAuth,
 ) : ViewModel() {
-
 
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState> = _state
 
-    val data = repository.data.map {
-        FeedModel(it, it.isEmpty())
-    }
-        .catch { it.printStackTrace() }
-        .asLiveData(Dispatchers.Default)
+    private val cached = repository
+        .data
+        .cachedIn(viewModelScope)
 
-    val newCount = repository.newCount.asLiveData() 
+    val data: Flow<PagingData<Post>> = auth.authStateFlow
+        .flatMapLatest { (myId, _) ->
+            cached.map { pagingData ->
+                pagingData.map { post ->
+                    post.copy(ownedByMe = post.authorId == myId)
+                }
+            }
+        }
+
+    val newCount = repository.newCount.asLiveData()
 
     val editedNow = MutableLiveData(empty)
 
-    fun markNewAsRead() {
+    // id поста, открытого в PostFragment
+    private val _postId = MutableStateFlow<Long?>(null)
+
+    // реактивный поток одного поста из БД
+    val post: Flow<Post?> = _postId
+        .flatMapLatest { id ->
+            if (id == null) flowOf(null)
+            else repository.getPostFlow(id)
+        }
+
+    fun setPostId(id: Long) {
+        _postId.value = id
         viewModelScope.launch {
-            repository.markNewAsRead()
+            try {
+                repository.fetchPost(id)
+            } catch (_: Exception) {
+                // если поста нет ни в БД, ни на сервере — PostFragment сам уйдёт назад
+            }
         }
     }
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
 
+    // Сигнал "ленте надо обновиться". replay = 1, чтобы не потерять его,
+    // если FeedFragment в момент эмиссии не на экране.
+    private val _refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
+    val refreshTrigger: SharedFlow<Unit> = _refreshTrigger.asSharedFlow()
+
     init {
-        loadPosts()
+        // При смене auth (login/logout) просим ленту перечитать первую страницу с сервера.
+        // drop(1) — не реагируем на текущее значение при создании ViewModel.
+        viewModelScope.launch {
+            auth.authStateFlow
+                .drop(1)
+                .collect {
+                    _refreshTrigger.tryEmit(Unit)
+                }
+        }
+    }
+
+    fun markNewAsRead() {
+        viewModelScope.launch { repository.markNewAsRead() }
     }
 
     fun likeById(id: Long) {
         viewModelScope.launch {
             try {
                 repository.likeById(id)
-                // LiveData обновится автоматически
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -115,6 +162,7 @@ class PostViewModel @Inject constructor(
                 repository.savePost(newPost)
                 _postCreated.value = Unit
                 editedNow.value = empty
+                _refreshTrigger.tryEmit(Unit)
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -123,17 +171,5 @@ class PostViewModel @Inject constructor(
 
     fun editContent(post: Post) {
         editedNow.value = post
-    }
-
-    fun loadPosts() {
-        viewModelScope.launch {
-            _state.value = FeedModelState(loading = true)
-            try {
-                repository.getAll()
-                _state.value = FeedModelState()
-            } catch (_: Exception) {
-                _state.value = FeedModelState(error = true)
-            }
-        }
     }
 }

@@ -12,6 +12,7 @@ data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val author: String,
+    val authorId: Long = 0,
     val content: String,
     val published: Long = 0,
     val likes: Int = 0,
@@ -22,27 +23,30 @@ data class PostEntity(
     val authorAvatar: String? = null,
     @Embedded
     var attachment: AttachmentEmbeddable?,
-    val isNew: Boolean = false 
+    val ownedByMe: Boolean = false,
+    val isNew: Boolean = false
 ) {
     fun toDto() = Post(
-        id,
-        author,
-        content,
-        published,
-        likes,
-        likedByMe,
-        shares,
-        views,
-        videoUrl,
-        authorAvatar,
-        attachment?.toDto()
+        id = id,
+        author = author,
+        authorId = authorId,
+        content = content,
+        published = published,
+        likes = likes,
+        likedByMe = likedByMe,
+        shares = shares,
+        views = views,
+        videoUrl = videoUrl,
+        authorAvatar = authorAvatar,
+        attachment = attachment?.toDto(),
+        ownedByMe = ownedByMe,
     )
 
     companion object {
-        //        fun fromDto(dto: Post) = PostEntity(
-        fun fromDto(dto: Post, isNew: Boolean = false) = PostEntity( 
+        fun fromDto(dto: Post, isNew: Boolean = false) = PostEntity(
             dto.id,
             dto.author,
+            dto.authorId,
             dto.content,
             dto.published,
             dto.likes,
@@ -52,11 +56,11 @@ data class PostEntity(
             dto.videoUrl,
             dto.authorAvatar,
             AttachmentEmbeddable.fromDto(dto.attachment),
-            isNew 
+            dto.ownedByMe,
+            isNew
         )
     }
 }
-
 
 data class AttachmentEmbeddable(
     var url: String,
@@ -74,4 +78,4 @@ data class AttachmentEmbeddable(
 
 fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
 fun List<Post>.toEntity(isNew: Boolean = false): List<PostEntity> =
-    map { PostEntity.fromDto(it, isNew) } 
+    map { PostEntity.fromDto(it, isNew) }

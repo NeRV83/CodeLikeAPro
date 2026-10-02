@@ -17,6 +17,7 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.Utility.formatShortNumber
 import ru.netology.nmedia.util.Utility.formatTimestamp
 import ru.netology.nmedia.util.Utility.getThumbnailDirectUrl
+import androidx.paging.PagingDataAdapter
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
@@ -28,12 +29,12 @@ interface OnInteractionListener {
 
 class PostAdapter(
     private val onInteractionListener: OnInteractionListener
-) : ListAdapter<Post, PostViewHolder>(
+) : PagingDataAdapter<Post, PostViewHolder>(
     PostDiffCallBack
 ) {
 
     override fun onBindViewHolder(viewHolder: PostViewHolder, position: Int) {
-        val post = getItem(position)
+        val post = getItem(position) ?: return
         viewHolder.bind(post)
     }
 
@@ -44,7 +45,8 @@ class PostAdapter(
 }
 
 class PostViewHolder(
-    private val binding: CardPostBinding, private val onInteractionListener: OnInteractionListener
+    private val binding: CardPostBinding,
+    private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {

@@ -9,7 +9,7 @@ import ru.netology.nmedia.entity.PostEntity
 
 @Dao
 interface PostDao {
-    @Query("SELECT * FROM PostEntity WHERE isNew = 0 ORDER BY id DESC") 
+    @Query("SELECT * FROM PostEntity WHERE isNew = 0 ORDER BY id DESC")
     fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
@@ -55,7 +55,9 @@ interface PostDao {
     @Query("SELECT * FROM PostEntity WHERE id = :id")
     suspend fun getById(id: Long): PostEntity?
 
-    
+    @Query("SELECT * FROM PostEntity WHERE id = :id")
+    fun getByIdFlow(id: Long): Flow<PostEntity?>
+
     @Query("SELECT COUNT(*) FROM PostEntity WHERE isNew = 1")
     suspend fun getNewCount(): Int
 
