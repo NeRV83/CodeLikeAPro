@@ -104,9 +104,7 @@ class FeedFragment : Fragment() {
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            viewLifecycleOwner.lifecycleScope.launch {
                 adapter.refresh()
-            }
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
