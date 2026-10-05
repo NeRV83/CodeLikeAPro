@@ -71,14 +71,12 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        // PagingData -> submitData
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.data.collectLatest(adapter::submitData)
             }
         }
 
-        // Состояние пагинации
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
@@ -94,7 +92,6 @@ class FeedFragment : Fragment() {
             }
         }
 
-        // НОВОЕ: подписка на сигнал "ленте надо обновиться"
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.refreshTrigger.collect {
