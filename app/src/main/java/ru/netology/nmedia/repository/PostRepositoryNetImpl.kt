@@ -42,11 +42,7 @@ class PostRepositoryNetImpl @Inject constructor(
 
     @OptIn(ExperimentalPagingApi::class)
     override val data = Pager(
-        config = PagingConfig(
-            pageSize = 10,
-            initialLoadSize = 10,
-            enablePlaceholders = false
-        ),
+        config = PagingConfig(pageSize = 10, initialLoadSize = 10, enablePlaceholders = false),
         pagingSourceFactory = {
             dao.getPagingSource()
         },
