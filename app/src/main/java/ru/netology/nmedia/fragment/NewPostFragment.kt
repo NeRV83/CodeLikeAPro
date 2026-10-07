@@ -89,8 +89,6 @@ class NewPostFragment : Fragment() {
         }
 
         viewModel.postCreated.observe(viewLifecycleOwner) {
-            // После успешного сохранения просто уходим назад.
-            // Обновление ленты сделает FeedFragment, получив refreshTrigger.
             findNavController().navigateUp()
         }
 

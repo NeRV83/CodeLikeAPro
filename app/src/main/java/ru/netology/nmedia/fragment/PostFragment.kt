@@ -16,12 +16,15 @@ import com.bumptech.glide.Glide
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.Utility.formatShortNumber
 import ru.netology.nmedia.util.Utility.formatTimestamp
 import ru.netology.nmedia.util.Utility.getThumbnailDirectUrl
+import ru.netology.nmedia.view.load
+import ru.netology.nmedia.view.loadCircleCrop
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 @AndroidEntryPoint
@@ -69,13 +72,7 @@ class PostFragment : Fragment() {
         published.text = formatTimestamp(post.published)
         content.text = post.content
 
-        Glide.with(avatar)
-            .load("http://10.0.2.2:9999/avatars/${post.authorAvatar}")
-            .placeholder(R.drawable.ic_loading_100dp)
-            .error(R.drawable.ic_error_100dp)
-            .timeout(10_000)
-            .circleCrop()
-            .into(avatar)
+        avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
 
         share.text = formatShortNumber(post.shares)
         view1.text = formatShortNumber(post.views)
@@ -88,13 +85,7 @@ class PostFragment : Fragment() {
         } else {
             videoContainer.visibility = View.VISIBLE
 
-            val thumbnailDirectUrl = getThumbnailDirectUrl(post.videoUrl)
-            Glide.with(videoThumbnail)
-                .load(thumbnailDirectUrl)
-                .placeholder(R.drawable.ic_loading_100dp)
-                .error(R.drawable.ic_error_100dp)
-                .timeout(10_000)
-                .into(videoThumbnail)
+            videoThumbnail.load(getThumbnailDirectUrl(post.videoUrl))
 
             playButton.setOnClickListener {
                 startActivity(Intent(Intent.ACTION_VIEW, post.videoUrl.toUri()))
@@ -105,13 +96,7 @@ class PostFragment : Fragment() {
             imgContainer.visibility = View.GONE
         } else {
             imgContainer.visibility = View.VISIBLE
-            val url = "http://10.0.2.2:9999/images/${post.attachment?.url}"
-            Glide.with(imgContainer)
-                .load(url)
-                .placeholder(R.drawable.ic_loading_100dp)
-                .error(R.drawable.ic_error_100dp)
-                .timeout(10_000)
-                .into(imgThumbnail)
+            imgThumbnail.load("${BuildConfig.BASE_URL}/images/${post.attachment?.url}")
         }
 
         like.setOnClickListener {

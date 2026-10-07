@@ -36,11 +36,11 @@ android {
                 "proguard-rules.pro"
             )
             manifestPlaceholders["usesCleartextTraffic"] = false
-            buildConfigField("String", "BASE_URL", "\"https://netology.ru/\"")
+            buildConfigField("String", "BASE_URL", "\"https://netomedia.ru\"")
         }
         debug {
             manifestPlaceholders["usesCleartextTraffic"] = true
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:9999/api/slow/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:9999\"")
         }
     }
     compileOptions {
@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.paging.runtime.ktx)
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.play.services)
+    implementation(libs.androidx.room.paging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
