@@ -10,6 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.BuildConfig
+import ru.netology.nmedia.auth.TokenHolder
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -17,12 +18,12 @@ import javax.inject.Singleton
 @Module
 class ApiModule {
     companion object {
-        private const val BASE_URL = "${BuildConfig.BASE_URL}"
+        private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
     }
 
     @Singleton
     @Provides
-    fun provideOkHttp(): OkHttpClient = OkHttpClient.Builder()
+    fun provideOkHttp(tokenHolder: TokenHolder): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .addInterceptor(HttpLoggingInterceptor().apply {
@@ -32,6 +33,14 @@ class ApiModule {
                 HttpLoggingInterceptor.Level.NONE
             }
         })
+        .addInterceptor { chain ->                       // ← вот он
+            val request = chain.request().newBuilder()
+                .apply {
+                    tokenHolder.token?.let { addHeader("Authorization", it) }
+                }
+                .build()
+            chain.proceed(request)
+        }
         .build()
 
     @Singleton

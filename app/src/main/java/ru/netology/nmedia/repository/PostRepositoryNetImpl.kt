@@ -3,6 +3,8 @@ package ru.netology.nmedia.repository
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.insertSeparators
 import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,8 @@ import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Ad
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
@@ -30,6 +34,7 @@ import ru.netology.nmedia.error.UnknownError
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
@@ -41,8 +46,12 @@ class PostRepositoryNetImpl @Inject constructor(
 ) : PostRepository {
 
     @OptIn(ExperimentalPagingApi::class)
-    override val data = Pager(
-        config = PagingConfig(pageSize = 10, initialLoadSize = 10, enablePlaceholders = false),
+    override val data: Flow<PagingData<FeedItem>> = Pager(
+        config = PagingConfig(
+            pageSize = 10,
+            initialLoadSize = 10,
+            enablePlaceholders = false
+        ),
         pagingSourceFactory = {
             dao.getPagingSource()
         },
@@ -51,19 +60,29 @@ class PostRepositoryNetImpl @Inject constructor(
             postDao = dao,
             postRemoteKeyDao = postRemoteKeyDao,
             appDb = appDb,
-            )
+        )
     ).flow
-        .map { it.map(PostEntity::toDto) }
+        .map {
+            it.map(PostEntity::toDto)
+                .insertSeparators { previousItem, _ ->
+                    if (previousItem?.id?.rem(5) == 0L) {
+                        Ad(Random.nextLong(), "figma.jpg")
+                    } else {
+                        null
+                    }
+                }
+        }
 
-    private val _newCount = MutableStateFlow(0)
-    override val newCount = _newCount.asStateFlow()
+//    private val _newCount = MutableStateFlow(0)
+//    override val newCount = _newCount.asStateFlow()
+
+    override val newCount: Flow<Int> = dao.getNewCountFlow()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
         scope.launch {
             while (true) {
-                delay(30_000.milliseconds)
                 try {
                     val maxId = dao.getMaxId() ?: 0L
                     val response = apiService.getNewer(maxId)
@@ -71,14 +90,14 @@ class PostRepositoryNetImpl @Inject constructor(
                         val body = response.body() ?: emptyList()
                         if (body.isNotEmpty()) {
                             dao.insert(body.map { PostEntity.fromDto(it, isNew = true) })
-                            _newCount.value = dao.getNewCount()
+//                            _newCount.value = dao.getNewCount()
                         }
                     }
                 } catch (e: IOException) {
-                    // сетевые ошибки игнорируем, чтобы не прерывать цикл
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+                delay(30_000.milliseconds)
             }
         }
     }
@@ -89,7 +108,7 @@ class PostRepositoryNetImpl @Inject constructor(
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.map { PostEntity.fromDto(it, isNew = false) })
-            _newCount.value = dao.getNewCount()
+//            _newCount.value = dao.getNewCount()
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -111,19 +130,27 @@ class PostRepositoryNetImpl @Inject constructor(
     }
 
     override suspend fun likeById(id: Long) {
+        val original = dao.getById(id) ?: return
+
+        // 1. Сразу обновляем БД — UI отреагирует мгновенно
+        dao.likeById(id)
+
         try {
-            val postEntity = dao.getById(id) ?: return
-            val response = if (postEntity.likedByMe) {
+            val response = if (original.likedByMe) {
                 apiService.unlikeById(id)
             } else {
                 apiService.likeById(id)
             }
             if (!response.isSuccessful) throw ApiError(response.code(), response.message())
             val body = response.body() ?: throw ApiError(response.code(), response.message())
+            // 2. Заменяем оптимистичное значение на серверное
             dao.insert(PostEntity.fromDto(body, isNew = false))
         } catch (e: IOException) {
+            // 3. Откат: возвращаем исходное состояние
+            dao.insert(original)
             throw NetworkError
         } catch (e: Exception) {
+            dao.insert(original)
             throw UnknownError
         }
     }
@@ -155,7 +182,7 @@ class PostRepositoryNetImpl @Inject constructor(
 
     override suspend fun markNewAsRead() {
         dao.markAllAsRead()
-        _newCount.value = dao.getNewCount()
+//        _newCount.value = dao.getNewCount()
     }
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {

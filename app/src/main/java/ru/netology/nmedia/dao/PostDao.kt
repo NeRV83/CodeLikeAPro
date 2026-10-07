@@ -14,7 +14,7 @@ interface PostDao {
     fun getAll(): Flow<List<PostEntity>>
 
     @Query("SELECT * FROM PostEntity WHERE isNew = 0 ORDER BY id DESC")
-    fun getPagingSource(): PagingSource<Int,PostEntity>
+    fun getPagingSource(): PagingSource<Int, PostEntity>
 
     @Query("SELECT COUNT(*) == 0 FROM PostEntity")
     suspend fun isEmpty(): Boolean
@@ -64,6 +64,9 @@ interface PostDao {
 
     @Query("SELECT COUNT(*) FROM PostEntity WHERE isNew = 1")
     suspend fun getNewCount(): Int
+
+    @Query("SELECT COUNT(*) FROM PostEntity WHERE isNew = 1")
+    fun getNewCountFlow(): Flow<Int>
 
     @Query("UPDATE PostEntity SET isNew = 0 WHERE isNew = 1")
     suspend fun markAllAsRead()

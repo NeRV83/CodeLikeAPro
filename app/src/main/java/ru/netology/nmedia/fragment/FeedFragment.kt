@@ -1,6 +1,7 @@
 package ru.netology.nmedia.fragment
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
+import ru.netology.nmedia.adapter.PostLoadingStateAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -34,6 +36,9 @@ class FeedFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
+
+        binding.swipeRefreshLayout.setColorSchemeColors(Color.TRANSPARENT)
+        binding.swipeRefreshLayout.setProgressBackgroundColorSchemeColor(Color.TRANSPARENT)
 
         val adapter = PostAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
@@ -69,7 +74,14 @@ class FeedFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter {
+                adapter.retry()
+            },
+            footer = PostLoadingStateAdapter {
+                adapter.retry()
+            }
+        )
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -77,14 +89,14 @@ class FeedFragment : Fragment() {
             }
         }
 
-        // Состояние пагинации
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
                     binding.swipeRefreshLayout.isRefreshing =
-                        state.refresh is LoadState.Loading ||
-                                state.prepend is LoadState.Loading ||
-                                state.append is LoadState.Loading
+                        state.refresh is LoadState.Loading
+//                                ||
+//                                state.prepend is LoadState.Loading ||
+//                                state.append is LoadState.Loading
 
                     val isEmpty = state.refresh is LoadState.NotLoading &&
                             adapter.itemCount == 0
@@ -93,7 +105,6 @@ class FeedFragment : Fragment() {
             }
         }
 
-        // НОВОЕ: подписка на сигнал "ленте надо обновиться"
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.refreshTrigger.collect {
@@ -103,16 +114,16 @@ class FeedFragment : Fragment() {
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-                adapter.refresh()
+            adapter.refresh()
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.errorGroup.isVisible = state.error
             binding.loadingProgress.isVisible = state.loading
 
-            if ((!state.loading || state.error) && binding.swipeRefreshLayout.isRefreshing) {
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
+//            if ((!state.loading || state.error) && binding.swipeRefreshLayout.isRefreshing) {
+//                binding.swipeRefreshLayout.isRefreshing = false
+//            }
         }
 
         viewModel.newCount.observe(viewLifecycleOwner) { count ->
@@ -123,7 +134,7 @@ class FeedFragment : Fragment() {
         binding.newPostsBanner.setOnClickListener {
             viewModel.markNewAsRead()
             viewLifecycleOwner.lifecycleScope.launch {
-                adapter.refresh()
+//                adapter.refresh()
             }
             binding.list.postDelayed({
                 binding.list.smoothScrollToPosition(0)
