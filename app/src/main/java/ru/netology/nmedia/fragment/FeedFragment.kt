@@ -92,14 +92,9 @@ class FeedFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 adapter.loadStateFlow.collectLatest { state ->
-                    binding.swipeRefreshLayout.isRefreshing =
-                        state.refresh is LoadState.Loading
-//                                ||
-//                                state.prepend is LoadState.Loading ||
-//                                state.append is LoadState.Loading
+                    binding.swipeRefreshLayout.isRefreshing = state.refresh is LoadState.Loading
 
-                    val isEmpty = state.refresh is LoadState.NotLoading &&
-                            adapter.itemCount == 0
+                    val isEmpty = state.refresh is LoadState.NotLoading && adapter.itemCount == 0
                     binding.empty.isVisible = isEmpty
                 }
             }
@@ -119,7 +114,7 @@ class FeedFragment : Fragment() {
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.errorGroup.isVisible = state.error
-            binding.loadingProgress.isVisible = state.loading
+            //binding.loadingProgress.isVisible = state.loading
 
 //            if ((!state.loading || state.error) && binding.swipeRefreshLayout.isRefreshing) {
 //                binding.swipeRefreshLayout.isRefreshing = false
