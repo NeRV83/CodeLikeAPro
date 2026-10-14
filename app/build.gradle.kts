@@ -81,6 +81,7 @@ dependencies {
     implementation(libs.androidx.paging.runtime.ktx)
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.play.services)
+    implementation(libs.androidx.room.paging)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

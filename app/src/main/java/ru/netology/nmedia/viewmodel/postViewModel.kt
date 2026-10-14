@@ -24,6 +24,7 @@ import ru.netology.nmedia.util.SingleLiveEvent
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Inject
 
 private val empty = Post(
@@ -53,6 +54,7 @@ class PostViewModel @Inject constructor(
         .data
         .cachedIn(viewModelScope)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val data: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             cached.map { pagingData ->
@@ -66,10 +68,9 @@ class PostViewModel @Inject constructor(
 
     val editedNow = MutableLiveData(empty)
 
-    // id поста, открытого в PostFragment
     private val _postId = MutableStateFlow<Long?>(null)
 
-    // реактивный поток одного поста из БД
+    @OptIn(ExperimentalCoroutinesApi::class)
     val post: Flow<Post?> = _postId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
@@ -82,7 +83,6 @@ class PostViewModel @Inject constructor(
             try {
                 repository.fetchPost(id)
             } catch (_: Exception) {
-                // если поста нет ни в БД, ни на сервере — PostFragment сам уйдёт назад
             }
         }
     }
@@ -90,14 +90,10 @@ class PostViewModel @Inject constructor(
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit> = _postCreated
 
-    // Сигнал "ленте надо обновиться". replay = 1, чтобы не потерять его,
-    // если FeedFragment в момент эмиссии не на экране.
     private val _refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
     val refreshTrigger: SharedFlow<Unit> = _refreshTrigger.asSharedFlow()
 
     init {
-        // При смене auth (login/logout) просим ленту перечитать первую страницу с сервера.
-        // drop(1) — не реагируем на текущее значение при создании ViewModel.
         viewModelScope.launch {
             auth.authStateFlow
                 .drop(1)
