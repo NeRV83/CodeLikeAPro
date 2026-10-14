@@ -26,20 +26,39 @@ class PostRemoteMediator(
 
     override suspend fun load(
         loadType: LoadType,
-        state: PagingState<Int, PostEntity>
+        state: PagingState<Int, PostEntity>,
     ): MediatorResult = try {
         when (loadType) {
-            LoadType.PREPEND ->
-                MediatorResult.Success(endOfPaginationReached = true)
-
+            LoadType.PREPEND -> prepend(state)
             LoadType.REFRESH -> refresh(state)
-
-            LoadType.APPEND -> append(state)
+            LoadType.APPEND  -> append(state)
         }
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
         MediatorResult.Error(e)
+    }
+
+    private suspend fun prepend(state: PagingState<Int, PostEntity>): MediatorResult {
+        val topId = postRemoteKeyDao.max()
+            ?: return MediatorResult.Success(endOfPaginationReached = true)
+
+        val response = service.getAfter(topId, state.config.pageSize)
+        val body = response.requireBody()
+
+        appDb.withTransaction {
+            if (body.isNotEmpty()) {
+                postRemoteKeyDao.insert(
+                    PostRemoteKeyEntity(
+                        PostRemoteKeyEntity.KeyType.AFTER,
+                        body.first().id,
+                    )
+                )
+            }
+            postDao.insert(body.map(PostEntity::fromDto))
+        }
+
+        return MediatorResult.Success(endOfPaginationReached = body.isEmpty())
     }
 
     private suspend fun refresh(state: PagingState<Int, PostEntity>): MediatorResult {

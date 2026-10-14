@@ -23,6 +23,7 @@ import javax.inject.Singleton
 @Singleton
 class AppAuth @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val tokenHolder: TokenHolder,
 ) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
     private val idKey = "id"
@@ -36,12 +37,10 @@ class AppAuth @Inject constructor(
 
         if (id == 0L || token == null) {
             _authStateFlow = MutableStateFlow(AuthState())
-            with(prefs.edit()) {
-                clear()
-                apply()
-            }
+            with(prefs.edit()) { clear(); apply() }
         } else {
             _authStateFlow = MutableStateFlow(AuthState(id, token))
+            tokenHolder.token = token
         }
     }
 
@@ -56,6 +55,7 @@ class AppAuth @Inject constructor(
     @Synchronized
     fun setAuth(id: Long, token: String) {
         _authStateFlow.value = AuthState(id, token)
+        tokenHolder.token = token
         with(prefs.edit()) {
             putLong(idKey, id)
             putString(tokenKey, token)
@@ -67,11 +67,8 @@ class AppAuth @Inject constructor(
     @Synchronized
     fun removeAuth() {
         _authStateFlow.value = AuthState()
-        with(prefs.edit()) {
-            clear()
-            apply()
-        }
-        sendPushToken()
+        tokenHolder.token = null
+        with(prefs.edit()) { clear(); apply() }
     }
 
     fun sendPushToken(token: String? = null) {

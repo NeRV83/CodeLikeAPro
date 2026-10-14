@@ -24,7 +24,7 @@ import ru.netology.nmedia.util.SingleLiveEvent
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import ru.netology.nmedia.dto.FeedItem
 import javax.inject.Inject
 
 private val empty = Post(
@@ -54,12 +54,15 @@ class PostViewModel @Inject constructor(
         .data
         .cachedIn(viewModelScope)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val data: Flow<PagingData<Post>> = auth.authStateFlow
+    val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             cached.map { pagingData ->
                 pagingData.map { post ->
-                    post.copy(ownedByMe = post.authorId == myId)
+                    if (post is Post) {
+                        post.copy(ownedByMe = post.authorId == myId)
+                    } else {
+                        post
+                    }
                 }
             }
         }
@@ -70,7 +73,6 @@ class PostViewModel @Inject constructor(
 
     private val _postId = MutableStateFlow<Long?>(null)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val post: Flow<Post?> = _postId
         .flatMapLatest { id ->
             if (id == null) flowOf(null)
@@ -111,6 +113,7 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.likeById(id)
+                resetError()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -121,6 +124,7 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.shareById(id)
+                resetError()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -131,6 +135,7 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.removeById(id)
+                resetError()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -159,6 +164,7 @@ class PostViewModel @Inject constructor(
                 _postCreated.value = Unit
                 editedNow.value = empty
                 _refreshTrigger.tryEmit(Unit)
+                resetError()
             } catch (e: Exception) {
                 _state.value = FeedModelState(error = true)
             }
@@ -167,5 +173,11 @@ class PostViewModel @Inject constructor(
 
     fun editContent(post: Post) {
         editedNow.value = post
+    }
+
+    private fun resetError() {
+        if (_state.value?.error == true) {
+            _state.value = FeedModelState()
+        }
     }
 }
